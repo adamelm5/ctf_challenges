@@ -1,0 +1,4 @@
+CRITICAL_ERROR: Token expired. Please re-authenticate.
+CRITICAL_ERROR: Redis connection failed at 127.0.0.1:6379
+TARGET_DOMAIN:update-security-check.com
+CRITICAL_ERROR: System OOM. Memory allocation failed.

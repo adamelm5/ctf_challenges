@@ -1,0 +1,10 @@
+=== NOTE D INCIDENT ===
+Date: 09/11/2026
+Analyste: Vous
+
+Nous avons intercepté un fichier suspect (suspect.bin) sur le serveur de production.
+J ai tenté de lancer notre nouvel outil d analyse par IA (triage_ai.py) pour gagner du temps.
+Mais l outil plante systématiquement avec des erreurs systeme bizarres (Redis, Token expire...).
+
+J ai l impression que le fichier suspect manipule l outil.
+Trouvez ce que contient vraiment ce binaire. Le flag est de la forme ENSEIRB{...}.

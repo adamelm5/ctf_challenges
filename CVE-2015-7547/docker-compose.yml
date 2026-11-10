@@ -1,0 +1,20 @@
+services:
+  attaquant:
+    build:
+      context: .
+      dockerfile: Dockerfile.attaquant
+    container_name: ctf_attaquant
+    ports:
+      - "2224:22"
+    networks:
+      - ctf_net
+  cible:
+    build:
+      context: .
+      dockerfile: Dockerfile.cible
+    container_name: ctf_cible
+    networks:
+      - ctf_net
+networks:
+  ctf_net:
+    driver: bridge

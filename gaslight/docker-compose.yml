@@ -1,0 +1,8 @@
+version: "3"
+services:
+  gaslight:
+    build: .
+    container_name: gaslight_ctf
+    ports:
+      - "2222:22"
+    restart: unless-stopped

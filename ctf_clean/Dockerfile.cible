@@ -1,0 +1,7 @@
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y gcc socat && rm -rf /var/lib/apt/lists/*
+RUN echo "ENSEIRB{R3t2W1n_M4st3r_2026}" > /flag.txt
+COPY files/client_dns.c /client_dns.c
+RUN gcc -fstack-protector-all -pie -fPIE -o /client_dns /client_dns.c
+EXPOSE 1337
+CMD ["socat", "TCP-LISTEN:1337,reuseaddr,fork", "EXEC:./client_dns,stderr"]
