@@ -1,0 +1,93 @@
+# Orchestration globale du challenge BatiRenov (4 épreuves chaînées).
+# Réseaux isolés : le bridge Docker ne route PAS entre deux réseaux ;
+# seul le conteneur "routeur" fait passerelle entre pbx_net_a et pbx_net_b.
+version: "3.9"
+
+services:
+  cible_dns:
+    build:
+      context: ./epreuve1_pwn
+      dockerfile: Dockerfile.cible
+    container_name: ctf_cible_dns
+    networks:
+      dns_net:
+        ipv4_address: 172.28.0.10
+
+  routeur:
+    build:
+      context: ./epreuve2_mitm/routeur
+    container_name: ctf_routeur
+    cap_add: [NET_ADMIN]
+    sysctls:
+      net.ipv4.ip_forward: 1
+    networks:
+      pbx_net_a:
+        ipv4_address: 10.0.10.1
+      pbx_net_b:
+        ipv4_address: 10.0.20.1
+
+  ext100:
+    build:
+      context: ./epreuve2_mitm/ext100
+    container_name: ctf_ext100
+    depends_on: [routeur]
+    networks:
+      pbx_net_a:
+        ipv4_address: 10.0.10.100
+
+  ext101:
+    build:
+      context: ./epreuve2_mitm/ext101
+    container_name: ctf_ext101
+    cap_add: [NET_ADMIN, NET_RAW]
+    depends_on: [routeur]
+    environment:
+      - API_KEY=${API_KEY}
+    networks:
+      pbx_net_b:
+        ipv4_address: 10.0.20.101
+
+  log_ingest:
+    build:
+      context: ./epreuve4_web_rce/log_ingest
+    container_name: ctf_log_ingest
+    cap_add: [NET_ADMIN]
+    environment:
+      - API_KEY=${API_KEY}
+    depends_on: [routeur]
+    networks:
+      pbx_net_b:
+        ipv4_address: 10.0.20.200
+
+  attaquant:
+    build:
+      context: .
+      dockerfile: attaquant/Dockerfile
+    container_name: ctf_attaquant
+    ports:
+      - "2224:22"
+    depends_on: [cible_dns, routeur, ext100, ext101, log_ingest]
+    networks:
+      dns_net:
+        ipv4_address: 172.28.0.20
+      pbx_net_a:
+        ipv4_address: 10.0.10.50
+      pbx_net_b:
+        ipv4_address: 10.0.20.50
+
+networks:
+  dns_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+  pbx_net_a:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.10.0/24
+  pbx_net_b:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.20.0/24

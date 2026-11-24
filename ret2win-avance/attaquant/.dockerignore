@@ -1,0 +1,9 @@
+**/solution/exploit.py
+**/solution/arp_spoof_mitm.py
+**/solution/dtmf_decoder.py
+**/solution/padding_oracle_attack.py
+**/solution/log4shell_payload.py
+**/ext101/config_sync.py
+**/ext101/sip_ua.py
+**/ext100/sip_ua.py
+**/.env

@@ -1,0 +1,28 @@
+services:
+  portal:
+    build: ./portal
+    container_name: ctf_portal
+    ports:
+      - "8080:80"
+    networks:
+      - net_public
+      - net_internal1
+    restart: unless-stopped
+
+  dns_service:
+    build: ./dns_service
+    container_name: ctf_dns
+    networks:
+      - net_internal1
+      - net_internal2
+    restart: unless-stopped
+
+networks:
+  net_public:
+    driver: bridge
+  net_internal1:
+    driver: bridge
+    internal: true
+  net_internal2:
+    driver: bridge
+    internal: true

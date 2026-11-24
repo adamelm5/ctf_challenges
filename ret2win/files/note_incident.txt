@@ -1,0 +1,8 @@
+=== NOTE D'INCIDENT ===
+Un serveur DNS distant (cible:53/UDP) fait tourner un binaire vulnerable.
+Le flag est stocke dans /flag.txt sur ce serveur distant.
+
+Votre mission :
+1. Le binaire vuln_dns_server (fourni sur votre machine) est identique a celui de la cible.
+2. Trouvez la faille (Format String + Buffer Overflow).
+3. Ecrivez un script Python UDP pour exploiter la cible et lire le flag.

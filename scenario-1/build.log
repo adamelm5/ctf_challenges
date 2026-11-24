@@ -1,0 +1,100 @@
+--progress is a global compose flag, better use `docker compose --progress xx build ...
+ Image scenario-1-dns_service Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 604B done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 931B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/debian:jessie
+#3 DONE 0.9s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [ 1/11] FROM docker.io/library/debian:jessie@sha256:32ad5050caffb2c7e969dac873bce2c370015c2256ff984b70c1c08b3a2816a0
+#5 resolve docker.io/library/debian:jessie@sha256:32ad5050caffb2c7e969dac873bce2c370015c2256ff984b70c1c08b3a2816a0 0.0s done
+#5 CACHED
+
+#6 [internal] load build context
+#6 transferring context: 32B done
+#6 DONE 0.0s
+
+#7 [ 2/11] RUN echo "deb [trusted=yes] http://archive.debian.org/debian jessie main" > /etc/apt/sources.list
+#7 DONE 0.2s
+
+#8 [ 3/11] RUN echo "Acquire::Check-Valid-Until "false";" > /etc/apt/apt.conf.d/99archive
+#8 DONE 0.3s
+
+#9 [ 4/11] RUN echo "Acquire::AllowInsecureRepositories "true";" >> /etc/apt/apt.conf.d/99archive
+#9 DONE 0.3s
+
+#10 [ 5/11] RUN echo "APT::Get::AllowUnauthenticated "true";" >> /etc/apt/apt.conf.d/99archive
+#10 DONE 0.3s
+
+#11 [ 6/11] RUN echo "Acquire::http::No-Cache "true";" >> /etc/apt/apt.conf.d/99archive
+#11 DONE 0.3s
+
+#12 [ 7/11] RUN echo "Acquire::http::Pipeline-Depth "0";" >> /etc/apt/apt.conf.d/99archive
+#12 DONE 0.2s
+
+#13 [ 8/11] RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true && apt-get install -y --no-install-recommends --allow-unauthenticated gcc libc6-dev && rm -rf /var/lib/apt/lists/*
+#13 1.612 Ign http://archive.debian.org jessie InRelease
+#13 1.712 Get:1 http://archive.debian.org jessie Release.gpg [2420 B]
+#13 1.818 Get:2 http://archive.debian.org jessie Release [148 kB]
+#13 2.705 Ign http://archive.debian.org jessie Release
+#13 2.842 Get:3 http://archive.debian.org jessie/main amd64 Packages [9098 kB]
+#13 10.31 Fetched 9249 kB in 8s (1079 kB/s)
+#13 10.31 Reading package lists...
+#13 11.89 W: GPG error: http://archive.debian.org jessie Release: The following signatures were invalid: KEYEXPIRED 1587841717
+#13 12.25 Reading package lists...
+#13 13.86 Building dependency tree...
+#13 13.99 Reading state information...
+#13 14.05 Some packages could not be installed. This may mean that you have
+#13 14.05 requested an impossible situation or if you are using the unstable
+#13 14.05 distribution that some required packages have not yet been created
+#13 14.05 or been moved out of Incoming.
+#13 14.05 The following information may help to resolve the situation:
+#13 14.05 
+#13 14.05 The following packages have unmet dependencies:
+#13 14.05  gcc : Depends: cpp (>= 4:4.9.2-2) but it is not going to be installed
+#13 14.05        Depends: gcc-4.9 (>= 4.9.2-1~) but it is not going to be installed
+#13 14.06 E: Unable to correct problems, you have held broken packages.
+#13 ERROR: process "/bin/sh -c apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true && apt-get install -y --no-install-recommends --allow-unauthenticated gcc libc6-dev && rm -rf /var/lib/apt/lists/*" did not complete successfully: exit code: 100
+------
+ > [ 8/11] RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true && apt-get install -y --no-install-recommends --allow-unauthenticated gcc libc6-dev && rm -rf /var/lib/apt/lists/*:
+14.05 Some packages could not be installed. This may mean that you have
+14.05 requested an impossible situation or if you are using the unstable
+14.05 distribution that some required packages have not yet been created
+14.05 or been moved out of Incoming.
+14.05 The following information may help to resolve the situation:
+14.05 
+14.05 The following packages have unmet dependencies:
+14.05  gcc : Depends: cpp (>= 4:4.9.2-2) but it is not going to be installed
+14.05        Depends: gcc-4.9 (>= 4.9.2-1~) but it is not going to be installed
+14.06 E: Unable to correct problems, you have held broken packages.
+------
+Dockerfile:13
+
+--------------------
+
+  11 |     RUN echo "Acquire::http::Pipeline-Depth \"0\";" >> /etc/apt/apt.conf.d/99archive
+
+  12 |     
+
+  13 | >>> RUN apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true && apt-get install -y --no-install-recommends --allow-unauthenticated gcc libc6-dev && rm -rf /var/lib/apt/lists/*
+
+  14 |     
+
+  15 |     WORKDIR /app
+
+--------------------
+
+failed to solve: process "/bin/sh -c apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::AllowInsecureRepositories=true && apt-get install -y --no-install-recommends --allow-unauthenticated gcc libc6-dev && rm -rf /var/lib/apt/lists/*" did not complete successfully: exit code: 100
+

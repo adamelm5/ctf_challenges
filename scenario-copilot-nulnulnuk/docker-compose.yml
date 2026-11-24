@@ -1,0 +1,200 @@
+services:
+  portal:
+    build:
+      context: ./portal
+    image: hospital-ctf-portal:local
+    init: true
+    restart: "no"
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 64m
+    cpus: 0.50
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    ports:
+      - "127.0.0.1:${CTF_PORT:-8080}:8080"
+    environment:
+      CONTROLLER_URL: http://ctf-controller:8080
+      CTF_INTERNAL_TOKEN: ${CTF_INTERNAL_TOKEN:?Set CTF_INTERNAL_TOKEN in .env}
+    networks: [player_net, control_net]
+    depends_on:
+      ctf-controller:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/healthz', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 2s
+
+  ctf-controller:
+    build:
+      context: ./controller
+    image: hospital-ctf-controller:local
+    init: true
+    restart: "no"
+    read_only: true
+    user: "10001:10001"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 64
+    mem_limit: 128m
+    cpus: 0.50
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    environment:
+      CTF_INTERNAL_TOKEN: ${CTF_INTERNAL_TOKEN:?Set CTF_INTERNAL_TOKEN in .env}
+      DNS_CLIENT_URL: http://dns-client:8091
+      ARCHIVE_URL: http://archive:8093
+    networks: [control_net, dns_net, archive_net]
+    depends_on:
+      dns-client:
+        condition: service_healthy
+      archive:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/healthz', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 2s
+
+  dns-client:
+    build:
+      context: ./dns-client
+    image: hospital-ctf-dns-client:local
+    init: true
+    restart: "no"
+    read_only: true
+    user: "10002:10002"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 32
+    mem_limit: 64m
+    cpus: 0.25
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    environment:
+      DNS_AUTHORITY_URL: http://dns-authoritative:8092
+    networks: [dns_net]
+    depends_on:
+      dns-authoritative:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8091/healthz', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 2s
+
+  dns-authoritative:
+    build:
+      context: ./dns-authoritative
+    image: hospital-ctf-dns-authoritative:local
+    init: true
+    restart: "no"
+    read_only: true
+    user: "10003:10003"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 32
+    mem_limit: 64m
+    cpus: 0.25
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    networks: [dns_net]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8092/healthz', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 2s
+
+  archive:
+    build:
+      context: ./archive
+    image: hospital-ctf-archive:local
+    init: true
+    restart: "no"
+    read_only: true
+    user: "10004:10004"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 32
+    mem_limit: 64m
+    cpus: 0.25
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m
+    environment:
+      CTF_INTERNAL_TOKEN: ${CTF_INTERNAL_TOKEN:?Set CTF_INTERNAL_TOKEN in .env}
+      CTF_FLAG_FILE: /archive-data/flag
+    volumes:
+      - archive_data:/archive-data:ro
+    networks: [archive_net]
+    depends_on:
+      archive-data:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8093/healthz', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 2s
+
+  archive-data:
+    build:
+      context: ./archive-data
+    image: hospital-ctf-archive-data:local
+    restart: "no"
+    user: "0:0"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 32m
+    cpus: 0.10
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=4m
+    volumes:
+      - archive_data:/data
+    secrets:
+      - ctf_flag
+    network_mode: none
+
+networks:
+  player_net:
+  control_net:
+    internal: true
+  dns_net:
+    internal: true
+  archive_net:
+    internal: true
+
+volumes:
+  archive_data:
+
+secrets:
+  ctf_flag:
+    file: ${CTF_FLAG_FILE:?Set CTF_FLAG_FILE in .env}

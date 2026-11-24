@@ -1,0 +1,7 @@
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+RUN echo "ENSEIRB{DNS_UDP_R3t2W1n_M4st3r}" > /flag.txt
+COPY files/vuln_dns_server.c /vuln_dns_server.c
+RUN gcc -fstack-protector-all -pie -fPIE -o /vuln_dns_server /vuln_dns_server.c
+EXPOSE 53/udp
+CMD ["./vuln_dns_server"]

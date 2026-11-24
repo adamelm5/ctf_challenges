@@ -1,0 +1,27 @@
+=== NOTE D'INCIDENT — BatiRenov, site télécom ===
+
+Contexte :
+  Deux postes SIP (ext100 sur 10.0.10.100, ext101 sur 10.0.20.101) dialoguent
+  à travers un routeur passerelle. Les flux RTP transportent de l'audio PCMU
+  et des événements DTMF (touches téléphoniques).
+
+  Un audit a montré que l'infrastructure segment télécom n'est pas correctement
+  protégée contre les attaques de niveau 2 (ARP). Le routeur fait passerelle
+  entre les deux sous-réseaux, et un cache ARP local conditionne l'accès à un
+  service de synchronisation de configuration (port 9000 TCP sur ext101).
+
+Points d'attention :
+  - Un "watchdog" ARP non documenté tourne sur ext101. Il journalise en syslog
+    UDP vers l'attaquant (10.0.20.50:514). Ses règles exactes ne sont pas
+    fournies : à vous de les découvrir empiriquement.
+  - Le service config_sync (port 9000) chiffre un blob en AES-128-CBC via une
+    version d'OpenSSL ancienne. Le déchiffrement utilise un padding PKCS7.
+  - Les appels SIP transportent des fragments d'information encodés en DTMF
+    RFC 2833 (event_id / flags E,R,volume / duration 2 octets big-endian).
+    Un fragment par appel, encadré par '#' (début) et '*' (fin), avec du
+    bourrage aléatoire. Le 5e appel est un signal particulier.
+
+Mission :
+  1. Intercepter le trafic RTP entre ext100 et ext101 (ARP spoofing).
+  2. Décoder les événements DTMF RFC 2833 pour reconstituer les fragments.
+  3. Récupérer le blob chiffré de config_sync pour l'épreuve suivante.

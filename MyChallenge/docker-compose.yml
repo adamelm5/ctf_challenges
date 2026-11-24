@@ -1,0 +1,89 @@
+services:
+  portal:
+    build: ./portal
+    container_name: hospital-portal
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      - HOST_IP=${HOST_IP:-127.0.0.1}
+      - SECRET_KEY=${SECRET_KEY:-hospital-ctf-secret-2025}
+    networks: [player_net]
+    restart: unless-stopped
+
+  openssl-vuln:
+    build: ./openssl-vuln
+    container_name: hospital-openssl
+    ports:
+      - "127.0.0.1:8444:8443"
+    environment:
+      - HOST_IP=${HOST_IP:-127.0.0.1}
+    networks: [player_net]
+    restart: unless-stopped
+
+  archive:
+    build: ./archive
+    container_name: hospital-archive
+    volumes:
+      - archive-data:/data:ro
+    networks: [player_net, archive_net]
+    depends_on:
+      archive-data:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  archive-auth:
+    image: nginx:alpine
+    container_name: hospital-archive-auth
+    ports:
+      - "127.0.0.1:8082:80"
+    volumes:
+      - ./archive-auth/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./archive-auth/.htpasswd:/etc/nginx/.htpasswd:ro
+    networks: [player_net, archive_net]
+    depends_on: [archive]
+    restart: unless-stopped
+
+  dns-authoritative:
+    build: ./dns-authoritative
+    container_name: hospital-dns-auth
+    networks: [dns_net]
+    restart: unless-stopped
+
+  dns-client:
+    build: ./dns-client
+    container_name: hospital-dns-client
+    ports:
+      - "127.0.0.1:2223:22"
+    environment:
+      - ARCHIVE_URL=http://${HOST_IP:-127.0.0.1}:8082
+      - ARCHIVE_USER=archive
+      - ARCHIVE_PASS=ARCH1V3-2025
+    networks: [dns_net, player_net]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - dns-authoritative
+    restart: unless-stopped
+
+  archive-data:
+    image: alpine:latest
+    container_name: hospital-archive-data
+    volumes:
+      - archive-data:/data
+      - ./flag.txt:/tmp/flag.txt:ro
+    command: sh -c "cp /tmp/flag.txt /data/flag.txt && chmod 644 /data/flag.txt && echo FLAG_OK"
+    network_mode: none
+    restart: "no"
+
+networks:
+  player_net:
+    driver: bridge
+  dns_net:
+    driver: bridge
+    internal: true
+  archive_net:
+    driver: bridge
+    internal: true
+
+volumes:
+  archive-data:

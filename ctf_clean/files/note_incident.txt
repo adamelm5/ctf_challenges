@@ -1,8 +1,0 @@
-=== NOTE D'INCIDENT ===
-Un serveur distant (cible:1337) fait tourner un binaire vulnerable.
-Le flag est stocke dans /flag.txt sur ce serveur distant.
-
-Votre mission :
-1. Le binaire client_dns (fourni sur votre machine) est identique a celui de la cible.
-2. Trouvez la faille (Format String + Buffer Overflow).
-3. Ecrivez un script Python pour exploiter la cible et lire le flag.
